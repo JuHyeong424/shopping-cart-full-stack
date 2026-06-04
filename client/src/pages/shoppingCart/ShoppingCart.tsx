@@ -128,6 +128,20 @@ export default function ShoppingCart() {
     }
   };
 
+  const handleDeleteItem = async (value: ShoppingCartItem) => {
+    try {
+      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok)
+        throw new Error("장바구니 상품 삭제 중 오류가 발생했습니다.");
+      getShoppingCartItems();
+    } catch (error) {
+      console.error("에러 발생", error);
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -153,7 +167,7 @@ export default function ShoppingCart() {
               <SelectedItem>
                 <SelectDeleteItem>
                   <input type="checkbox" aria-label="해당 상품 선택" />
-                  <button>삭제</button>
+                  <button onClick={() => handleDeleteItem(value)}>삭제</button>
                 </SelectDeleteItem>
 
                 <SelectedItemInfo>
