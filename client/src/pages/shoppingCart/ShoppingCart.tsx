@@ -3,8 +3,25 @@ import Example from "../../assets/example.jpg";
 // import unchecked from "../../assets/unchecked.svg";
 // import Checked from "../../assets/checked.svg";
 import infoOutline from "../../assets/infoOutline.svg";
+import { useEffect, useState } from "react";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ShoppingCart() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/carts`)
+      .then((res) => {
+        if (!res.ok) throw new Error("상품을 불러오지 못했습니다.");
+        return res.json();
+      })
+      .then(setProducts)
+      .catch(console.error);
+  }, []);
+
+  console.log(products);
+
   return (
     <Container>
       <Header>
