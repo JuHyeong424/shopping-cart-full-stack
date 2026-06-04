@@ -1,14 +1,30 @@
 import styled from "@emotion/styled";
-import Example from "../../assets/example.jpg";
 // import unchecked from "../../assets/unchecked.svg";
 // import Checked from "../../assets/checked.svg";
 import infoOutline from "../../assets/infoOutline.svg";
 import { useEffect, useState } from "react";
 
+interface ShoppingCartItem {
+  product: {
+    id: string;
+    image: string;
+    name: string;
+    price: number;
+  };
+  quantity: number;
+}
+
+const UN_CHECKED =
+  "data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3crect%20width='24'%20height='24'%20rx='8'%20fill='white'/%3e%3crect%20x='0.5'%20y='0.5'%20width='23'%20height='23'%20rx='7.5'%20stroke='black'%20stroke-opacity='0.1'/%3e%3cg%20clip-path='url(%23clip0_13996_1608)'%3e%3cpath%20d='M9%2016.17L4.83%2012L3.41%2013.41L9%2019L21%207L19.59%205.59L9%2016.17Z'%20fill='black'%20fill-opacity='0.1'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_13996_1608'%3e%3crect%20width='24'%20height='24'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+const CHECKED =
+  "data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3crect%20x='0.5'%20y='0.5'%20width='23'%20height='23'%20rx='7.5'%20fill='black'%20stroke='black'/%3e%3cg%20clip-path='url(%23clip0_15620_131)'%3e%3cpath%20d='M9%2016.17L4.83%2012L3.41%2013.41L9%2019L21%207L19.59%205.59L9%2016.17Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_15620_131'%3e%3crect%20width='24'%20height='24'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ShoppingCart() {
-  const [products, setProducts] = useState([]);
+  const [shoppingCartItems, setShoppingCartItems] = useState<
+    ShoppingCartItem[]
+  >([]);
 
   useEffect(() => {
     fetch(`${BASE_URL}/carts`)
@@ -16,11 +32,101 @@ export default function ShoppingCart() {
         if (!res.ok) throw new Error("상품을 불러오지 못했습니다.");
         return res.json();
       })
-      .then(setProducts)
+      .then(setShoppingCartItems)
       .catch(console.error);
   }, []);
 
-  console.log(products);
+  const getShoppingCartItems = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/carts`);
+      if (!response.ok)
+        throw new Error("장바구나 상품 정보를 받아올 수 없습니다.");
+
+      const data = await response.json();
+      setShoppingCartItems(data);
+    } catch (error) {
+      console.error("에러 발생", error);
+    }
+  };
+
+  console.log(shoppingCartItems);
+
+  const handleMinusQuantity = async (value: ShoppingCartItem) => {
+    const updatedQuantity = value.quantity - 1;
+
+    setShoppingCartItems((prev) => {
+      return prev.map((item) => {
+        return item.product.id === value.product.id
+          ? { ...item, quantity: updatedQuantity }
+          : item;
+      });
+    });
+
+    try {
+      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity: value.quantity - 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
+      }
+
+      getShoppingCartItems();
+    } catch (error) {
+      console.error("에러 발생", error);
+      setShoppingCartItems((prev) => {
+        return prev.map((item) => {
+          return item.product.id === value.product.id
+            ? { ...item, quantity: value.quantity }
+            : item;
+        });
+      });
+    }
+  };
+
+  const handlePlusQuantity = async (value: ShoppingCartItem) => {
+    const updatedQuantity = value.quantity + 1;
+    setShoppingCartItems((prev) => {
+      return prev.map((item) => {
+        return item.product.id === value.product.id
+          ? { ...item, quantity: updatedQuantity }
+          : item;
+      });
+    });
+
+    try {
+      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity: value.quantity + 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
+      }
+
+      getShoppingCartItems();
+    } catch (error) {
+      console.error("에러 발생", error);
+      setShoppingCartItems((prev) => {
+        return prev.map((item) => {
+          return item.product.id === value.product.id
+            ? { ...item, quantity: value.quantity }
+            : item;
+        });
+      });
+    }
+  };
 
   return (
     <Container>
@@ -31,7 +137,7 @@ export default function ShoppingCart() {
       <main>
         <PageHeader>
           <h2>장바구니</h2>
-          <p>현재 2종류의 상품이 담겨있습니다.</p>
+          <p>현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.</p>
         </PageHeader>
 
         <SelectedAllItems>
@@ -40,53 +146,37 @@ export default function ShoppingCart() {
             <span>전체선택</span>
           </SelectAllLabel>
 
-          <Divider />
+          {shoppingCartItems.map((value) => (
+            <div key={value.product.id}>
+              <Divider />
 
-          <SelectedItem>
-            <SelectDeleteItem>
-              <input type="checkbox" aria-label="해당 상품 선택" />
-              <button>삭제</button>
-            </SelectDeleteItem>
+              <SelectedItem>
+                <SelectDeleteItem>
+                  <input type="checkbox" aria-label="해당 상품 선택" />
+                  <button>삭제</button>
+                </SelectDeleteItem>
 
-            <SelectedItemInfo>
-              <img src={Example} alt="example" />
-              <ItemNamePriceCount>
-                <div>
-                  <h5>상품이름A</h5>
-                  <span>35,000원</span>
-                </div>
-                <ItemCount>
-                  <button>-</button>
-                  <span>3</span>
-                  <button>+</button>
-                </ItemCount>
-              </ItemNamePriceCount>
-            </SelectedItemInfo>
-          </SelectedItem>
-
-          <Divider />
-
-          <SelectedItem>
-            <SelectDeleteItem>
-              <input type="checkbox" aria-label="해당 상품 선택" />
-              <button>삭제</button>
-            </SelectDeleteItem>
-
-            <SelectedItemInfo>
-              <img src={Example} alt="example" />
-              <ItemNamePriceCount>
-                <div>
-                  <h5>상품이름A</h5>
-                  <span>35,000원</span>
-                </div>
-                <ItemCount>
-                  <button>-</button>
-                  <span>3</span>
-                  <button>+</button>
-                </ItemCount>
-              </ItemNamePriceCount>
-            </SelectedItemInfo>
-          </SelectedItem>
+                <SelectedItemInfo>
+                  <img src={value.product.image} alt="상품 이미지" />
+                  <ItemNamePriceCount>
+                    <div>
+                      <h5>{value.product.name}</h5>
+                      <span>{value.product.price.toLocaleString()}원</span>
+                    </div>
+                    <ItemCount>
+                      <button onClick={() => handleMinusQuantity(value)}>
+                        -
+                      </button>
+                      <span>{value.quantity}</span>
+                      <button onClick={() => handlePlusQuantity(value)}>
+                        +
+                      </button>
+                    </ItemCount>
+                  </ItemNamePriceCount>
+                </SelectedItemInfo>
+              </SelectedItem>
+            </div>
+          ))}
         </SelectedAllItems>
 
         <OrderSummary>
@@ -183,7 +273,7 @@ const SelectAllLabel = styled.label`
     width: 24px;
     height: 24px;
 
-    background-image: url("data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3crect%20width='24'%20height='24'%20rx='8'%20fill='white'/%3e%3crect%20x='0.5'%20y='0.5'%20width='23'%20height='23'%20rx='7.5'%20stroke='black'%20stroke-opacity='0.1'/%3e%3cg%20clip-path='url(%23clip0_13996_1608)'%3e%3cpath%20d='M9%2016.17L4.83%2012L3.41%2013.41L9%2019L21%207L19.59%205.59L9%2016.17Z'%20fill='black'%20fill-opacity='0.1'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_13996_1608'%3e%3crect%20width='24'%20height='24'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
+    background-image: url("${UN_CHECKED}");
     background-size: contain;
     background-position: center;
     background-size: 24px 24px;
@@ -215,7 +305,7 @@ const SelectDeleteItem = styled.section`
     width: 24px;
     height: 24px;
 
-    background-image: url("data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3crect%20x='0.5'%20y='0.5'%20width='23'%20height='23'%20rx='7.5'%20fill='black'%20stroke='black'/%3e%3cg%20clip-path='url(%23clip0_15620_131)'%3e%3cpath%20d='M9%2016.17L4.83%2012L3.41%2013.41L9%2019L21%207L19.59%205.59L9%2016.17Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_15620_131'%3e%3crect%20width='24'%20height='24'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e");
+    background-image: url("${UN_CHECKED}");
     background-size: contain;
     background-position: center;
     background-size: 24px 24px;
@@ -256,7 +346,7 @@ const ItemNamePriceCount = styled.div`
   gap: 24px;
 
   h5 {
-    margin: 0;
+    margin: 4px 0;
     font-family: "Noto Sans", sans-serif;
     font-weight: 500;
     font-size: 12px;
