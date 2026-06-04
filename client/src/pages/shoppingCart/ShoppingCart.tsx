@@ -25,6 +25,25 @@ export default function ShoppingCart() {
   const [shoppingCartItems, setShoppingCartItems] = useState<
     ShoppingCartItem[]
   >([]);
+  const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(new Set());
+
+  console.log(checkedIdsSet);
+
+  const updateSet = (set: Set<string>, id: string) => {
+    const updatedSet = new Set(set);
+
+    if (updatedSet.has(id)) {
+      updatedSet.delete(id);
+    } else {
+      updatedSet.add(id);
+    }
+
+    return updatedSet;
+  };
+
+  const handleItemChoice = (value: ShoppingCartItem) => {
+    setCheckedIdsSet((prev) => updateSet(prev, value.product.id));
+  };
 
   useEffect(() => {
     fetch(`${BASE_URL}/carts`)
@@ -32,7 +51,10 @@ export default function ShoppingCart() {
         if (!res.ok) throw new Error("상품을 불러오지 못했습니다.");
         return res.json();
       })
-      .then(setShoppingCartItems)
+      .then((data: ShoppingCartItem[]) => {
+        setShoppingCartItems(data);
+        setCheckedIdsSet(new Set(data.map((item) => item.product.id)));
+      })
       .catch(console.error);
   }, []);
 
@@ -142,6 +164,17 @@ export default function ShoppingCart() {
     }
   };
 
+  const handleAllCheckedById = (checked: boolean) => {
+    if (checked) {
+      const allChecked = new Set(
+        shoppingCartItems.map((item) => item.product.id),
+      );
+      setCheckedIdsSet(allChecked);
+    } else {
+      setCheckedIdsSet(new Set());
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -156,7 +189,12 @@ export default function ShoppingCart() {
 
         <SelectedAllItems>
           <SelectAllLabel>
-            <input type="checkbox" aria-label="전체 상품 선택" />
+            <input
+              checked={checkedIdsSet.size === shoppingCartItems.length}
+              onChange={(e) => handleAllCheckedById(e.target.checked)}
+              type="checkbox"
+              aria-label="전체 상품 선택"
+            />
             <span>전체선택</span>
           </SelectAllLabel>
 
@@ -166,7 +204,12 @@ export default function ShoppingCart() {
 
               <SelectedItem>
                 <SelectDeleteItem>
-                  <input type="checkbox" aria-label="해당 상품 선택" />
+                  <input
+                    checked={checkedIdsSet.has(value.product.id)}
+                    onChange={() => handleItemChoice(value)}
+                    type="checkbox"
+                    aria-label="해당 상품 선택"
+                  />
                   <button onClick={() => handleDeleteItem(value)}>삭제</button>
                 </SelectDeleteItem>
 
@@ -292,6 +335,10 @@ const SelectAllLabel = styled.label`
     background-position: center;
     background-size: 24px 24px;
     background-repeat: no-repeat;
+
+    &:checked {
+      background-image: url("${CHECKED}");
+    }
   }
 
   span {
@@ -324,6 +371,10 @@ const SelectDeleteItem = styled.section`
     background-position: center;
     background-size: 24px 24px;
     background-repeat: no-repeat;
+
+    &:checked {
+      background-image: url("${CHECKED}");
+    }
   }
 
   button {
