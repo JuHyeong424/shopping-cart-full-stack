@@ -8,14 +8,14 @@ export const cartRepository = new CartRepository();
 
 const initialProducts = [
   {
-    id: "1",
+    id: "asdf53asdf%Q",
     name: "나이키 에어맥스",
     price: 139000,
     image:
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
   },
   {
-    id: "2",
+    id: "asdfasdkl#$asdf$",
     name: "나이키 에어 조던 1",
     price: 199000,
     image:
