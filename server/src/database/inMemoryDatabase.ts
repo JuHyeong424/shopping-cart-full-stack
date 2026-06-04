@@ -28,7 +28,9 @@ function seed() {
     productRepository.save(id, new Product(id, { name, price, image }));
   });
 
-  cartRepository.save(new ShoppingCart("1", 2));
+  initialProducts.forEach((value) => {
+    cartRepository.save(new ShoppingCart(value.id, 1));
+  });
 }
 
 seed();
