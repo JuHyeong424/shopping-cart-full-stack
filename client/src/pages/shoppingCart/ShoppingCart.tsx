@@ -201,11 +201,10 @@ export default function ShoppingCart() {
 
   const totalPayment = orderAmount + checkDeliveryFee;
 
-  const totalProductsTypeCount = shoppingCartItems.length;
-  const totalProductsQuantity = shoppingCartItems.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  );
+  const totalProductsTypeCount = checkedIdsSet.size;
+  const totalProductsQuantity = shoppingCartItems
+    .filter((item) => checkedIdsSet.has(item.product.id))
+    .reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSubmit = () => {
     navigate("/checkorder", {
