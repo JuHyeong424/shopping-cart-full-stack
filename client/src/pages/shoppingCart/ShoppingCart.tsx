@@ -36,8 +36,6 @@ export default function ShoppingCart() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  console.log(checkedIdsSet);
-
   useEffect(() => {
     if (!isInitialized.current) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...checkedIdsSet]));
@@ -203,7 +201,7 @@ export default function ShoppingCart() {
 
   const orderAmount = shoppingCartItems
     .filter((item) => checkedIdsSet.has(item.product.id))
-    .reduce((sum, item) => (sum + item.product.price) * item.quantity, 0);
+    .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   const checkDeliveryFee =
     orderAmount < 100000 &&
@@ -235,7 +233,13 @@ export default function ShoppingCart() {
         <span>SHOP</span>
       </Header>
 
-      {shoppingCartItems.length === 0 && (
+      {isLoading && (
+        <SpinnerWrapper>
+          <Spinner role="status" aria-label="로딩 중" />
+        </SpinnerWrapper>
+      )}
+
+      {!isLoading && shoppingCartItems.length === 0 && (
         <main>
           <PageHeader>
             <h2>장바구니</h2>
