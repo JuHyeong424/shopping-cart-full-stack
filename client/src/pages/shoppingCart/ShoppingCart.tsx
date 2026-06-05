@@ -235,96 +235,113 @@ export default function ShoppingCart() {
         <span>SHOP</span>
       </Header>
 
-      <main>
-        {isLoading && (
-          <SpinnerWrapper>
-            <Spinner role="status" aria-label="로딩 중" />
-          </SpinnerWrapper>
-        )}
-        {!isLoading && (
-          <>
-            <PageHeader>
-              <h2>장바구니</h2>
-              <p>현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.</p>
-            </PageHeader>
+      {shoppingCartItems.length === 0 && (
+        <main>
+          <PageHeader>
+            <h2>장바구니</h2>
+          </PageHeader>
+          <NoItemsInCart>
+            <p>장바구니에 담은 상품이 없습니다.</p>
+          </NoItemsInCart>
+        </main>
+      )}
 
-            <SelectedAllItems>
-              <SelectAllLabel>
-                <input
-                  checked={
-                    checkedIdsSet.size === shoppingCartItems.length &&
-                    shoppingCartItems.length !== 0
-                  }
-                  onChange={(e) => handleAllCheckedById(e.target.checked)}
-                  type="checkbox"
-                  aria-label="전체 상품 선택"
-                />
-                <span>전체선택</span>
-              </SelectAllLabel>
+      {shoppingCartItems.length !== 0 && (
+        <main>
+          {isLoading && (
+            <SpinnerWrapper>
+              <Spinner role="status" aria-label="로딩 중" />
+            </SpinnerWrapper>
+          )}
+          {!isLoading && (
+            <>
+              <PageHeader>
+                <h2>장바구니</h2>
+                <p>
+                  현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.
+                </p>
+              </PageHeader>
 
-              {shoppingCartItems.map((value) => (
-                <div key={value.product.id}>
-                  <Divider />
+              <SelectedAllItems>
+                <SelectAllLabel>
+                  <input
+                    checked={
+                      checkedIdsSet.size === shoppingCartItems.length &&
+                      shoppingCartItems.length !== 0
+                    }
+                    onChange={(e) => handleAllCheckedById(e.target.checked)}
+                    type="checkbox"
+                    aria-label="전체 상품 선택"
+                  />
+                  <span>전체선택</span>
+                </SelectAllLabel>
 
-                  <SelectedItem>
-                    <SelectDeleteItem>
-                      <input
-                        checked={checkedIdsSet.has(value.product.id)}
-                        onChange={() => handleItemChoice(value)}
-                        type="checkbox"
-                        aria-label="해당 상품 선택"
-                      />
-                      <button onClick={() => handleDeleteItem(value)}>
-                        삭제
-                      </button>
-                    </SelectDeleteItem>
+                {shoppingCartItems.map((value) => (
+                  <div key={value.product.id}>
+                    <Divider />
 
-                    <SelectedItemInfo>
-                      <img src={value.product.image} alt="상품 이미지" />
-                      <ItemNamePriceCount>
-                        <div>
-                          <h5>{value.product.name}</h5>
-                          <span>{value.product.price.toLocaleString()}원</span>
-                        </div>
-                        <ItemCount>
-                          <button onClick={() => handleMinusQuantity(value)}>
-                            -
-                          </button>
-                          <span>{value.quantity}</span>
-                          <button onClick={() => handlePlusQuantity(value)}>
-                            +
-                          </button>
-                        </ItemCount>
-                      </ItemNamePriceCount>
-                    </SelectedItemInfo>
-                  </SelectedItem>
-                </div>
-              ))}
-            </SelectedAllItems>
-          </>
-        )}
+                    <SelectedItem>
+                      <SelectDeleteItem>
+                        <input
+                          checked={checkedIdsSet.has(value.product.id)}
+                          onChange={() => handleItemChoice(value)}
+                          type="checkbox"
+                          aria-label="해당 상품 선택"
+                        />
+                        <button onClick={() => handleDeleteItem(value)}>
+                          삭제
+                        </button>
+                      </SelectDeleteItem>
 
-        <OrderSummary>
-          <ShippingNotice>
-            <img src={infoOutline} alt="infoOutline" />
-            <p>총 주문 금액이 100,000원 이상일 경우 무료 배송됩니다.</p>
-          </ShippingNotice>
-          <Divider />
-          <PriceRow>
-            <h4>주문 금액</h4>
-            <span>{orderAmount.toLocaleString()}원</span>
-          </PriceRow>
-          <PriceRow>
-            <h4>배송비</h4>
-            <span>{checkDeliveryFee.toLocaleString()}원</span>
-          </PriceRow>
-          <Divider />
-          <PriceRow>
-            <h4>총 결제 금액</h4>
-            <span>{totalPayment.toLocaleString()}원</span>
-          </PriceRow>
-        </OrderSummary>
-      </main>
+                      <SelectedItemInfo>
+                        <img src={value.product.image} alt="상품 이미지" />
+                        <ItemNamePriceCount>
+                          <div>
+                            <h5>{value.product.name}</h5>
+                            <span>
+                              {value.product.price.toLocaleString()}원
+                            </span>
+                          </div>
+                          <ItemCount>
+                            <button onClick={() => handleMinusQuantity(value)}>
+                              -
+                            </button>
+                            <span>{value.quantity}</span>
+                            <button onClick={() => handlePlusQuantity(value)}>
+                              +
+                            </button>
+                          </ItemCount>
+                        </ItemNamePriceCount>
+                      </SelectedItemInfo>
+                    </SelectedItem>
+                  </div>
+                ))}
+              </SelectedAllItems>
+            </>
+          )}
+
+          <OrderSummary>
+            <ShippingNotice>
+              <img src={infoOutline} alt="infoOutline" />
+              <p>총 주문 금액이 100,000원 이상일 경우 무료 배송됩니다.</p>
+            </ShippingNotice>
+            <Divider />
+            <PriceRow>
+              <h4>주문 금액</h4>
+              <span>{orderAmount.toLocaleString()}원</span>
+            </PriceRow>
+            <PriceRow>
+              <h4>배송비</h4>
+              <span>{checkDeliveryFee.toLocaleString()}원</span>
+            </PriceRow>
+            <Divider />
+            <PriceRow>
+              <h4>총 결제 금액</h4>
+              <span>{totalPayment.toLocaleString()}원</span>
+            </PriceRow>
+          </OrderSummary>
+        </main>
+      )}
 
       <OrderCheckButton
         disabled={shoppingCartItems.length === 0 || checkedIdsSet.size === 0}
@@ -344,6 +361,14 @@ export default function ShoppingCart() {
     </Container>
   );
 }
+
+const NoItemsInCart = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100svh - 250px);
+`;
 
 const ErrorOverlay = styled.div`
   position: fixed;
