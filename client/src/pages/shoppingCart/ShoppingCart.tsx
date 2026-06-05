@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { keyframes } from "@emotion/react";
 import infoOutline from "../../assets/infoOutline.svg";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +33,7 @@ export default function ShoppingCart() {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   console.log(checkedIdsSet);
 
@@ -73,10 +74,10 @@ export default function ShoppingCart() {
           // 이후 진입: 저장된 값 복원
           setCheckedIdsSet(new Set(JSON.parse(saved) as string[]));
         }
-
         isInitialized.current = true;
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, []);
 
   console.log(shoppingCartItems);
@@ -226,62 +227,73 @@ export default function ShoppingCart() {
       </Header>
 
       <main>
-        <PageHeader>
-          <h2>장바구니</h2>
-          <p>현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.</p>
-        </PageHeader>
+        {isLoading && (
+          <SpinnerWrapper>
+            <Spinner role="status" aria-label="로딩 중" />
+          </SpinnerWrapper>
+        )}
+        {!isLoading && (
+          <>
+            <PageHeader>
+              <h2>장바구니</h2>
+              <p>현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.</p>
+            </PageHeader>
 
-        <SelectedAllItems>
-          <SelectAllLabel>
-            <input
-              checked={
-                checkedIdsSet.size === shoppingCartItems.length &&
-                shoppingCartItems.length !== 0
-              }
-              onChange={(e) => handleAllCheckedById(e.target.checked)}
-              type="checkbox"
-              aria-label="전체 상품 선택"
-            />
-            <span>전체선택</span>
-          </SelectAllLabel>
+            <SelectedAllItems>
+              <SelectAllLabel>
+                <input
+                  checked={
+                    checkedIdsSet.size === shoppingCartItems.length &&
+                    shoppingCartItems.length !== 0
+                  }
+                  onChange={(e) => handleAllCheckedById(e.target.checked)}
+                  type="checkbox"
+                  aria-label="전체 상품 선택"
+                />
+                <span>전체선택</span>
+              </SelectAllLabel>
 
-          {shoppingCartItems.map((value) => (
-            <div key={value.product.id}>
-              <Divider />
+              {shoppingCartItems.map((value) => (
+                <div key={value.product.id}>
+                  <Divider />
 
-              <SelectedItem>
-                <SelectDeleteItem>
-                  <input
-                    checked={checkedIdsSet.has(value.product.id)}
-                    onChange={() => handleItemChoice(value)}
-                    type="checkbox"
-                    aria-label="해당 상품 선택"
-                  />
-                  <button onClick={() => handleDeleteItem(value)}>삭제</button>
-                </SelectDeleteItem>
-
-                <SelectedItemInfo>
-                  <img src={value.product.image} alt="상품 이미지" />
-                  <ItemNamePriceCount>
-                    <div>
-                      <h5>{value.product.name}</h5>
-                      <span>{value.product.price.toLocaleString()}원</span>
-                    </div>
-                    <ItemCount>
-                      <button onClick={() => handleMinusQuantity(value)}>
-                        -
+                  <SelectedItem>
+                    <SelectDeleteItem>
+                      <input
+                        checked={checkedIdsSet.has(value.product.id)}
+                        onChange={() => handleItemChoice(value)}
+                        type="checkbox"
+                        aria-label="해당 상품 선택"
+                      />
+                      <button onClick={() => handleDeleteItem(value)}>
+                        삭제
                       </button>
-                      <span>{value.quantity}</span>
-                      <button onClick={() => handlePlusQuantity(value)}>
-                        +
-                      </button>
-                    </ItemCount>
-                  </ItemNamePriceCount>
-                </SelectedItemInfo>
-              </SelectedItem>
-            </div>
-          ))}
-        </SelectedAllItems>
+                    </SelectDeleteItem>
+
+                    <SelectedItemInfo>
+                      <img src={value.product.image} alt="상품 이미지" />
+                      <ItemNamePriceCount>
+                        <div>
+                          <h5>{value.product.name}</h5>
+                          <span>{value.product.price.toLocaleString()}원</span>
+                        </div>
+                        <ItemCount>
+                          <button onClick={() => handleMinusQuantity(value)}>
+                            -
+                          </button>
+                          <span>{value.quantity}</span>
+                          <button onClick={() => handlePlusQuantity(value)}>
+                            +
+                          </button>
+                        </ItemCount>
+                      </ItemNamePriceCount>
+                    </SelectedItemInfo>
+                  </SelectedItem>
+                </div>
+              ))}
+            </SelectedAllItems>
+          </>
+        )}
 
         <OrderSummary>
           <ShippingNotice>
@@ -319,6 +331,28 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   margin: 100px 24px;
+`;
+
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
+const SpinnerWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 0;
+`;
+
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top-color: rgba(0, 0, 0, 1);
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
 `;
 
 const Header = styled.header`
