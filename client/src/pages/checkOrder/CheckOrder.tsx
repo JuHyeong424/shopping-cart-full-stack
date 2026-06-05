@@ -1,24 +1,35 @@
 import styled from "@emotion/styled";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Arrow from "../../assets/arrow.svg";
 
 export default function CheckOrder() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { price, totalProductsTypeCount, totalProductsQuantity } =
     location.state || {};
 
   return (
     <Container>
       <Header>
-        <span>SHOP</span>
+        <img onClick={() => navigate(-1)} src={Arrow} alt="뒤로가기" />
       </Header>
-      <h1>주문 확인</h1>
-      <p>
-        총 {totalProductsTypeCount}종류의 상품 {totalProductsQuantity}개를
-        주문합니다.
-      </p>
-      <p>최종 결제 금액을 확인해 주세요.</p>
-      <p>총 결제 금액</p>
-      <p>{price.toLocaleString()}원</p>
+
+      <Main>
+        <h2>주문 확인</h2>
+
+        <OrderQuantity>
+          <p>
+            총 {totalProductsTypeCount}종류의 상품 {totalProductsQuantity}개를
+            주문합니다.
+          </p>
+          <p>최종 결제 금액을 확인해 주세요.</p>
+        </OrderQuantity>
+
+        <OrderPrice>
+          <h4>총 결제 금액</h4>
+          <p>{Number(price).toLocaleString()}원</p>
+        </OrderPrice>
+      </Main>
       <OrderCheckButton>결제하기</OrderCheckButton>
     </Container>
   );
@@ -47,6 +58,63 @@ const Header = styled.header`
   font-size: 20px;
   line-height: 16px;
   color: rgba(255, 255, 255, 1);
+`;
+
+const Main = styled.main`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 100px - 100px);
+
+  h2 {
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 100%;
+    color: rgba(0, 0, 0, 1);
+  }
+`;
+
+const OrderQuantity = styled.section`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 150%;
+  color: rgba(10, 13, 19, 1);
+
+  p {
+    margin: 0;
+  }
+`;
+
+const OrderPrice = styled.section`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  h4 {
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 16px;
+    color: rgba(10, 13, 19, 1);
+  }
+
+  p {
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 100%;
+    color: rgba(0, 0, 0, 1);
+    margin: 0;
+  }
 `;
 
 const OrderCheckButton = styled.button`
