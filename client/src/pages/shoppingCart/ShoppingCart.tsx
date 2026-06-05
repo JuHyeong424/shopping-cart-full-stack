@@ -3,19 +3,11 @@ import { keyframes } from "@emotion/react";
 import infoOutline from "../../assets/infoOutline.svg";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { UN_CHECKED, CHECKED, DELIVERY_FEE } from "./constants/constant";
+import { DELIVERY_FEE } from "./constants/constant";
 import { useCartItems } from "./hooks/useCartItems";
 import { useCheckedItems } from "./hooks/useCheckedItems";
-
-interface ShoppingCartItem {
-  product: {
-    id: string;
-    image: string;
-    name: string;
-    price: number;
-  };
-  quantity: number;
-}
+import CartItem from "./components/CartItem";
+import type { ShoppingCartItem } from "./types";
 
 export default function ShoppingCart() {
   const isInitializedRef = useRef(false);
@@ -108,60 +100,15 @@ export default function ShoppingCart() {
                   현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.
                 </p>
               </PageHeader>
-
-              <SelectedAllItems>
-                <SelectAllLabel>
-                  <input
-                    checked={
-                      checkedIdsSet.size === shoppingCartItems.length &&
-                      shoppingCartItems.length !== 0
-                    }
-                    onChange={(e) => handleAllCheckedById(e.target.checked)}
-                    type="checkbox"
-                    aria-label="전체 상품 선택"
-                  />
-                  <span>전체선택</span>
-                </SelectAllLabel>
-
-                {shoppingCartItems.map((value) => (
-                  <div key={value.product.id}>
-                    <Divider />
-
-                    <SelectedItem>
-                      <SelectDeleteItem>
-                        <input
-                          checked={checkedIdsSet.has(value.product.id)}
-                          onChange={() => handleItemChoice(value)}
-                          type="checkbox"
-                          aria-label="해당 상품 선택"
-                        />
-                        <button onClick={() => onDelete(value)}>삭제</button>
-                      </SelectDeleteItem>
-
-                      <SelectedItemInfo>
-                        <img src={value.product.image} alt="상품 이미지" />
-                        <ItemNamePriceCount>
-                          <div>
-                            <h5>{value.product.name}</h5>
-                            <span>
-                              {value.product.price.toLocaleString()}원
-                            </span>
-                          </div>
-                          <ItemCount>
-                            <button onClick={() => handleMinusQuantity(value)}>
-                              -
-                            </button>
-                            <span>{value.quantity}</span>
-                            <button onClick={() => handlePlusQuantity(value)}>
-                              +
-                            </button>
-                          </ItemCount>
-                        </ItemNamePriceCount>
-                      </SelectedItemInfo>
-                    </SelectedItem>
-                  </div>
-                ))}
-              </SelectedAllItems>
+              <CartItem
+                shoppingCartItems={shoppingCartItems}
+                checkedIdsSet={checkedIdsSet}
+                handleAllCheckedById={handleAllCheckedById}
+                handleItemChoice={handleItemChoice}
+                onDelete={onDelete}
+                handleMinusQuantity={handleMinusQuantity}
+                handlePlusQuantity={handlePlusQuantity}
+              />
             </>
           )}
 
@@ -330,152 +277,6 @@ const PageHeader = styled.section`
 
   p {
     margin: 0;
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 15px;
-    color: rgba(10, 13, 19, 1);
-  }
-`;
-
-const SelectedAllItems = styled.div`
-  margin-bottom: 52px;
-`;
-
-const SelectAllLabel = styled.label`
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 20px;
-
-  input {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-
-    background-image: url("${UN_CHECKED}");
-    background-size: contain;
-    background-position: center;
-    background-size: 24px 24px;
-    background-repeat: no-repeat;
-
-    &:checked {
-      background-image: url("${CHECKED}");
-    }
-  }
-
-  span {
-    margin: 0;
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 15px;
-    color: rgba(10, 13, 19, 1);
-  }
-`;
-
-const SelectedItem = styled.div`
-  margin-bottom: 20px;
-`;
-
-const SelectDeleteItem = styled.section`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-
-  input {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-
-    background-image: url("${UN_CHECKED}");
-    background-size: contain;
-    background-position: center;
-    background-size: 24px 24px;
-    background-repeat: no-repeat;
-
-    &:checked {
-      background-image: url("${CHECKED}");
-    }
-  }
-
-  button {
-    padding: 4px 9px;
-    background-color: rgba(255, 255, 255, 1);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 15px;
-    color: rgba(10, 13, 19, 1);
-  }
-`;
-
-const SelectedItemInfo = styled.div`
-  display: flex;
-  flex-direction: row;
-  gap: 24px;
-  items-align: center;
-
-  img {
-    width: 112px;
-    height: 112px;
-    border-radius: 8px;
-  }
-`;
-
-const ItemNamePriceCount = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 24px;
-
-  h5 {
-    margin: 4px 0;
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 15px;
-    color: rgba(10, 13, 19, 1);
-  }
-
-  span {
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 700;
-    font-size: 24px;
-    line-height: 100%;
-    color: rgba(0, 0, 0, 1);
-  }
-`;
-
-const ItemCount = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: full;
-  gap: 12px;
-
-  button {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    box-sizing: border-box;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 1);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  span {
     font-family: "Noto Sans", sans-serif;
     font-weight: 500;
     font-size: 12px;
