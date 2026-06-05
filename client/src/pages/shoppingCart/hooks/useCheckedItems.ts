@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
 import { STORAGE_KEY } from "../constants/constant";
-
-interface ShoppingCartItem {
-  product: {
-    id: string;
-    image: string;
-    name: string;
-    price: number;
-  };
-  quantity: number;
-}
+import type { ShoppingCartItem } from "../types";
 
 export function useCheckedItems(
   isInitializedRef: React.RefObject<boolean>,

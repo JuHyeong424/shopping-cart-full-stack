@@ -1,15 +1,6 @@
 import { useState, useEffect } from "react";
 import { BASE_URL } from "../constants/constant";
-
-interface ShoppingCartItem {
-  product: {
-    id: string;
-    image: string;
-    name: string;
-    price: number;
-  };
-  quantity: number;
-}
+import type { ShoppingCartItem } from "../types";
 
 export function useCartItems() {
   const [shoppingCartItems, setShoppingCartItems] = useState<
