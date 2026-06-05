@@ -34,7 +34,7 @@ export default function ShoppingCart() {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState();
+  const [error, setError] = useState("asdf");
 
   console.log(checkedIdsSet);
 
@@ -65,7 +65,7 @@ export default function ShoppingCart() {
       try {
         const response = await fetch(`${BASE_URL}/carts`);
         if (!response.ok) throw new Error("상품을 불러오지 못했습니다.");
-        const data = await response.json();
+        const data: ShoppingCartItem[] = await response.json();
         setShoppingCartItems(data);
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved === null) {
@@ -78,6 +78,7 @@ export default function ShoppingCart() {
         isInitialized.current = true;
       } catch (error) {
         console.error(error);
+        setError("상품 불러오기를 실패하였습니다. 다시 시도해주세요.");
       } finally {
         setIsLoading(false);
       }
@@ -114,6 +115,7 @@ export default function ShoppingCart() {
       }
     } catch (error) {
       console.error("에러 발생", error);
+      setError("상품 수량은 1 이상 가능합니다. 다시 시도해주세요.");
       setShoppingCartItems((prev) => {
         return prev.map((item) => {
           return item.product.id === value.product.id
@@ -150,6 +152,7 @@ export default function ShoppingCart() {
       }
     } catch (error) {
       console.error("에러 발생", error);
+      setError("상품 수량은 99 이하 가능합니다. 다시 시도해주세요.");
       setShoppingCartItems((prev) => {
         return prev.map((item) => {
           return item.product.id === value.product.id
@@ -182,6 +185,7 @@ export default function ShoppingCart() {
       });
     } catch (error) {
       console.error("에러 발생", error);
+      setError("상품 삭제에 실패하였습니다. 다시 시도해주세요.");
       setShoppingCartItems(prevItems);
     }
   };
@@ -328,9 +332,69 @@ export default function ShoppingCart() {
       >
         주문 확인
       </OrderCheckButton>
+
+      {error && (
+        <ErrorOverlay onClick={() => setError("")}>
+          <ErrorBox onClick={(e) => e.stopPropagation()}>
+            <p>{error}</p>
+            <button onClick={() => setError("")}>닫기</button>
+          </ErrorBox>
+        </ErrorOverlay>
+      )}
     </Container>
   );
 }
+
+const ErrorOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+`;
+
+const ErrorBox = styled.div`
+  width: 80%;
+  max-width: 320px;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 12px;
+  padding: 24px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  p {
+    margin: 0;
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    color: rgba(10, 13, 19, 1);
+  }
+
+  button {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 1);
+    color: rgba(255, 255, 255, 1);
+    cursor: pointer;
+
+    font-family: "Noto Sans", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 16px;
+  }
+`;
 
 const Container = styled.div`
   display: flex;
