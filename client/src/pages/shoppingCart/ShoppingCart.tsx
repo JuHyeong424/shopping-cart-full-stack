@@ -1,6 +1,4 @@
 import styled from "@emotion/styled";
-// import unchecked from "../../assets/unchecked.svg";
-// import Checked from "../../assets/checked.svg";
 import infoOutline from "../../assets/infoOutline.svg";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +23,8 @@ const STORAGE_KEY = "cart-checked-ids";
 const DELIVERY_FEE = 3000;
 
 export default function ShoppingCart() {
+  const navigate = useNavigate();
+  const isInitialized = useRef(false);
   const [shoppingCartItems, setShoppingCartItems] = useState<
     ShoppingCartItem[]
   >([]);
@@ -32,8 +32,7 @@ export default function ShoppingCart() {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-  const isInitialized = useRef(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   console.log(checkedIdsSet);
 
@@ -169,6 +168,12 @@ export default function ShoppingCart() {
   };
 
   const handleDeleteItem = async (value: ShoppingCartItem) => {
+    const prevItems = shoppingCartItems;
+
+    setShoppingCartItems((prev) => {
+      return prev.filter((item) => item.product.id !== value.product.id);
+    });
+
     try {
       const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
         method: "DELETE",
@@ -176,9 +181,15 @@ export default function ShoppingCart() {
 
       if (!response.ok)
         throw new Error("장바구니 상품 삭제 중 오류가 발생했습니다.");
-      getShoppingCartItems();
+
+      setCheckedIdsSet((prev) => {
+        const updatedCheckedId = new Set(prev);
+        updatedCheckedId.delete(value.product.id);
+        return updatedCheckedId;
+      });
     } catch (error) {
       console.error("에러 발생", error);
+      setShoppingCartItems(prevItems);
     }
   };
 
