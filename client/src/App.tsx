@@ -19,8 +19,7 @@ export default function App() {
 const AppContainer = styled.div`
   width: 430px;
   max-width: 100%;
-  min-height: 932px;
-  max-height: 100svh;
+  height: 100svh;
   overflow-y: auto;
   background-color: white;
 `;
