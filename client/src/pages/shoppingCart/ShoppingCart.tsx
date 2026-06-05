@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 // import Checked from "../../assets/checked.svg";
 import infoOutline from "../../assets/infoOutline.svg";
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ShoppingCartItem {
   product: {
@@ -32,6 +33,7 @@ export default function ShoppingCart() {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const isInitialized = useRef(false);
+  const navigate = useNavigate();
 
   console.log(checkedIdsSet);
 
@@ -118,8 +120,6 @@ export default function ShoppingCart() {
       if (!response.ok) {
         throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
       }
-
-      getShoppingCartItems();
     } catch (error) {
       console.error("에러 발생", error);
       setShoppingCartItems((prev) => {
@@ -156,8 +156,6 @@ export default function ShoppingCart() {
       if (!response.ok) {
         throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
       }
-
-      getShoppingCartItems();
     } catch (error) {
       console.error("에러 발생", error);
       setShoppingCartItems((prev) => {
@@ -197,11 +195,27 @@ export default function ShoppingCart() {
 
   const orderAmount = shoppingCartItems
     .filter((item) => checkedIdsSet.has(item.product.id))
-    .reduce((sum, item) => sum + item.product.price, 0);
+    .reduce((sum, item) => (sum + item.product.price) * item.quantity, 0);
 
-  const checkDeliveryFee = orderAmount > 1000000 ? DELIVERY_FEE : 0;
+  const checkDeliveryFee = orderAmount < 100000 ? DELIVERY_FEE : 0;
 
   const totalPayment = orderAmount + checkDeliveryFee;
+
+  const totalProductsTypeCount = shoppingCartItems.length;
+  const totalProductsQuantity = shoppingCartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+
+  const handleSubmit = () => {
+    navigate("/checkorder", {
+      state: {
+        price: `${totalPayment}`,
+        totalProductsTypeCount: `${totalProductsTypeCount}`,
+        totalProductsQuantity: `${totalProductsQuantity}`,
+      },
+    });
+  };
 
   return (
     <Container>
@@ -286,7 +300,7 @@ export default function ShoppingCart() {
         </OrderSummary>
       </main>
 
-      <OrderCheckButton>주문 확인</OrderCheckButton>
+      <OrderCheckButton onClick={handleSubmit}>주문 확인</OrderCheckButton>
     </Container>
   );
 }
