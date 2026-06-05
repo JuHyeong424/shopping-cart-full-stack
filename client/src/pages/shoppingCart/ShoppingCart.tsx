@@ -79,19 +79,6 @@ export default function ShoppingCart() {
       .catch(console.error);
   }, []);
 
-  const getShoppingCartItems = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/carts`);
-      if (!response.ok)
-        throw new Error("장바구나 상품 정보를 받아올 수 없습니다.");
-
-      const data = await response.json();
-      setShoppingCartItems(data);
-    } catch (error) {
-      console.error("에러 발생", error);
-    }
-  };
-
   console.log(shoppingCartItems);
 
   const handleMinusQuantity = async (value: ShoppingCartItem) => {
@@ -242,7 +229,10 @@ export default function ShoppingCart() {
         <SelectedAllItems>
           <SelectAllLabel>
             <input
-              checked={checkedIdsSet.size === shoppingCartItems.length}
+              checked={
+                checkedIdsSet.size === shoppingCartItems.length &&
+                shoppingCartItems.length !== 0
+              }
               onChange={(e) => handleAllCheckedById(e.target.checked)}
               type="checkbox"
               aria-label="전체 상품 선택"
@@ -310,7 +300,12 @@ export default function ShoppingCart() {
         </OrderSummary>
       </main>
 
-      <OrderCheckButton onClick={handleSubmit}>주문 확인</OrderCheckButton>
+      <OrderCheckButton
+        disabled={shoppingCartItems.length === 0 || checkedIdsSet.size === 0}
+        onClick={handleSubmit}
+      >
+        주문 확인
+      </OrderCheckButton>
     </Container>
   );
 }
