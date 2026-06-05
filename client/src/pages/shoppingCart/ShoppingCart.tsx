@@ -1,15 +1,11 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
 import infoOutline from "../../assets/infoOutline.svg";
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  UN_CHECKED,
-  CHECKED,
-  BASE_URL,
-  STORAGE_KEY,
-  DELIVERY_FEE,
-} from "./constants/constant";
+import { UN_CHECKED, CHECKED, DELIVERY_FEE } from "./constants/constant";
+import { useCartItems } from "./hooks/useCartItems";
+import { useCheckedItems } from "./hooks/useCheckedItems";
 
 interface ShoppingCartItem {
   product: {
@@ -22,179 +18,28 @@ interface ShoppingCartItem {
 }
 
 export default function ShoppingCart() {
+  const isInitializedRef = useRef(false);
   const navigate = useNavigate();
-  const isInitialized = useRef(false);
-  const [shoppingCartItems, setShoppingCartItems] = useState<
-    ShoppingCartItem[]
-  >([]);
-  const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    shoppingCartItems,
+    isLoading,
+    error,
+    setError,
+    handleMinusQuantity,
+    handlePlusQuantity,
+    handleDeleteItem,
+  } = useCartItems();
 
-  useEffect(() => {
-    if (!isInitialized.current) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checkedIdsSet]));
-  }, [checkedIdsSet]);
+  const {
+    checkedIdsSet,
+    handleItemChoice,
+    handleAllCheckedById,
+    removeChecked,
+  } = useCheckedItems(isInitializedRef, shoppingCartItems);
 
-  const updateSet = (set: Set<string>, id: string) => {
-    const updatedSet = new Set(set);
-
-    if (updatedSet.has(id)) {
-      updatedSet.delete(id);
-    } else {
-      updatedSet.add(id);
-    }
-
-    return updatedSet;
-  };
-
-  const handleItemChoice = (value: ShoppingCartItem) => {
-    setCheckedIdsSet((prev) => updateSet(prev, value.product.id));
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/carts`);
-        if (!response.ok) throw new Error("상품을 불러오지 못했습니다.");
-        const data: ShoppingCartItem[] = await response.json();
-        setShoppingCartItems(data);
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === null) {
-          // 최초 진입: 전체 선택
-          setCheckedIdsSet(new Set(data.map((item) => item.product.id)));
-        } else {
-          // 이후 진입: 저장된 값 복원
-          setCheckedIdsSet(new Set(JSON.parse(saved) as string[]));
-        }
-        isInitialized.current = true;
-      } catch (error) {
-        console.error(error);
-        setError("상품 불러오기를 실패하였습니다. 다시 시도해주세요.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  console.log(shoppingCartItems);
-
-  const handleMinusQuantity = async (value: ShoppingCartItem) => {
-    const updatedQuantity = value.quantity - 1;
-
-    setShoppingCartItems((prev) => {
-      return prev.map((item) => {
-        return item.product.id === value.product.id
-          ? { ...item, quantity: updatedQuantity }
-          : item;
-      });
-    });
-
-    try {
-      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          quantity: value.quantity - 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
-      }
-    } catch (error) {
-      console.error("에러 발생", error);
-      setError("상품 수량은 1 이상 가능합니다. 다시 시도해주세요.");
-      setShoppingCartItems((prev) => {
-        return prev.map((item) => {
-          return item.product.id === value.product.id
-            ? { ...item, quantity: value.quantity }
-            : item;
-        });
-      });
-    }
-  };
-
-  const handlePlusQuantity = async (value: ShoppingCartItem) => {
-    const updatedQuantity = value.quantity + 1;
-    setShoppingCartItems((prev) => {
-      return prev.map((item) => {
-        return item.product.id === value.product.id
-          ? { ...item, quantity: updatedQuantity }
-          : item;
-      });
-    });
-
-    try {
-      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          quantity: value.quantity + 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
-      }
-    } catch (error) {
-      console.error("에러 발생", error);
-      setError("상품 수량은 99 이하 가능합니다. 다시 시도해주세요.");
-      setShoppingCartItems((prev) => {
-        return prev.map((item) => {
-          return item.product.id === value.product.id
-            ? { ...item, quantity: value.quantity }
-            : item;
-        });
-      });
-    }
-  };
-
-  const handleDeleteItem = async (value: ShoppingCartItem) => {
-    const prevItems = shoppingCartItems;
-
-    setShoppingCartItems((prev) => {
-      return prev.filter((item) => item.product.id !== value.product.id);
-    });
-
-    try {
-      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok)
-        throw new Error("장바구니 상품 삭제 중 오류가 발생했습니다.");
-
-      setCheckedIdsSet((prev) => {
-        const updatedCheckedId = new Set(prev);
-        updatedCheckedId.delete(value.product.id);
-        return updatedCheckedId;
-      });
-    } catch (error) {
-      console.error("에러 발생", error);
-      setError("상품 삭제에 실패하였습니다. 다시 시도해주세요.");
-      setShoppingCartItems(prevItems);
-    }
-  };
-
-  const handleAllCheckedById = (checked: boolean) => {
-    if (checked) {
-      const allChecked = new Set(
-        shoppingCartItems.map((item) => item.product.id),
-      );
-      setCheckedIdsSet(allChecked);
-    } else {
-      setCheckedIdsSet(new Set());
-    }
+  const onDelete = async (item: ShoppingCartItem) => {
+    const ok = await handleDeleteItem(item);
+    if (ok) removeChecked(item.product.id);
   };
 
   const orderAmount = shoppingCartItems
@@ -290,9 +135,7 @@ export default function ShoppingCart() {
                           type="checkbox"
                           aria-label="해당 상품 선택"
                         />
-                        <button onClick={() => handleDeleteItem(value)}>
-                          삭제
-                        </button>
+                        <button onClick={() => onDelete(value)}>삭제</button>
                       </SelectDeleteItem>
 
                       <SelectedItemInfo>
