@@ -33,7 +33,8 @@ export default function ShoppingCart() {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
 
   console.log(checkedIdsSet);
 
@@ -59,12 +60,12 @@ export default function ShoppingCart() {
   };
 
   useEffect(() => {
-    fetch(`${BASE_URL}/carts`)
-      .then((res) => {
-        if (!res.ok) throw new Error("상품을 불러오지 못했습니다.");
-        return res.json();
-      })
-      .then((data: ShoppingCartItem[]) => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${BASE_URL}/carts`);
+        if (!response.ok) throw new Error("상품을 불러오지 못했습니다.");
+        const data = await response.json();
         setShoppingCartItems(data);
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved === null) {
@@ -75,9 +76,13 @@ export default function ShoppingCart() {
           setCheckedIdsSet(new Set(JSON.parse(saved) as string[]));
         }
         isInitialized.current = true;
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   console.log(shoppingCartItems);
