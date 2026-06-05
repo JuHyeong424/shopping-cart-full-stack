@@ -9,7 +9,7 @@ export const cartRepository = new CartRepository();
 const initialProducts = [
   {
     name: "나이키 에어맥스",
-    price: 139000,
+    price: 50000,
     image:
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
   },
