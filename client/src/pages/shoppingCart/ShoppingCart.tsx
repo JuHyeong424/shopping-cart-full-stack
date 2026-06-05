@@ -195,7 +195,12 @@ export default function ShoppingCart() {
     .filter((item) => checkedIdsSet.has(item.product.id))
     .reduce((sum, item) => (sum + item.product.price) * item.quantity, 0);
 
-  const checkDeliveryFee = orderAmount < 100000 ? DELIVERY_FEE : 0;
+  const checkDeliveryFee =
+    orderAmount < 100000 &&
+    shoppingCartItems.length !== 0 &&
+    checkedIdsSet.size !== 0
+      ? DELIVERY_FEE
+      : 0;
 
   const totalPayment = orderAmount + checkDeliveryFee;
 
