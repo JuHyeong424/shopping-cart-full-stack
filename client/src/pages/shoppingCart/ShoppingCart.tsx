@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 // import unchecked from "../../assets/unchecked.svg";
 // import Checked from "../../assets/checked.svg";
 import infoOutline from "../../assets/infoOutline.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface ShoppingCartItem {
   product: {
@@ -20,14 +20,24 @@ const CHECKED =
   "data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3crect%20x='0.5'%20y='0.5'%20width='23'%20height='23'%20rx='7.5'%20fill='black'%20stroke='black'/%3e%3cg%20clip-path='url(%23clip0_15620_131)'%3e%3cpath%20d='M9%2016.17L4.83%2012L3.41%2013.41L9%2019L21%207L19.59%205.59L9%2016.17Z'%20fill='white'/%3e%3c/g%3e%3cdefs%3e%3cclipPath%20id='clip0_15620_131'%3e%3crect%20width='24'%20height='24'%20fill='white'/%3e%3c/clipPath%3e%3c/defs%3e%3c/svg%3e";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+const STORAGE_KEY = "cart-checked-ids";
 
 export default function ShoppingCart() {
   const [shoppingCartItems, setShoppingCartItems] = useState<
     ShoppingCartItem[]
   >([]);
-  const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(new Set());
+  const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+  const isInitialized = useRef(false);
 
   console.log(checkedIdsSet);
+
+  useEffect(() => {
+    if (!isInitialized.current) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checkedIdsSet]));
+  }, [checkedIdsSet]);
 
   const updateSet = (set: Set<string>, id: string) => {
     const updatedSet = new Set(set);
@@ -53,7 +63,16 @@ export default function ShoppingCart() {
       })
       .then((data: ShoppingCartItem[]) => {
         setShoppingCartItems(data);
-        setCheckedIdsSet(new Set(data.map((item) => item.product.id)));
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === null) {
+          // 최초 진입: 전체 선택
+          setCheckedIdsSet(new Set(data.map((item) => item.product.id)));
+        } else {
+          // 이후 진입: 저장된 값 복원
+          setCheckedIdsSet(new Set(JSON.parse(saved) as string[]));
+        }
+
+        isInitialized.current = true;
       })
       .catch(console.error);
   }, []);
