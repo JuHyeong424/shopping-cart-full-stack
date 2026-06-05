@@ -34,7 +34,7 @@ export default function ShoppingCart() {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("asdf");
+  const [error, setError] = useState("");
 
   console.log(checkedIdsSet);
 
