@@ -21,6 +21,7 @@ const CHECKED =
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const STORAGE_KEY = "cart-checked-ids";
+const DELIVERY_FEE = 3000;
 
 export default function ShoppingCart() {
   const [shoppingCartItems, setShoppingCartItems] = useState<
@@ -194,6 +195,14 @@ export default function ShoppingCart() {
     }
   };
 
+  const orderAmount = shoppingCartItems
+    .filter((item) => checkedIdsSet.has(item.product.id))
+    .reduce((sum, item) => sum + item.product.price, 0);
+
+  const checkDeliveryFee = orderAmount > 1000000 ? DELIVERY_FEE : 0;
+
+  const totalPayment = orderAmount + checkDeliveryFee;
+
   return (
     <Container>
       <Header>
@@ -263,16 +272,16 @@ export default function ShoppingCart() {
           <Divider />
           <PriceRow>
             <h4>주문 금액</h4>
-            <span>70,000원</span>
+            <span>{orderAmount.toLocaleString()}원</span>
           </PriceRow>
           <PriceRow>
             <h4>배송비</h4>
-            <span>3,000원</span>
+            <span>{checkDeliveryFee.toLocaleString()}원</span>
           </PriceRow>
           <Divider />
           <PriceRow>
             <h4>총 결제 금액</h4>
-            <span>73,000원</span>
+            <span>{totalPayment.toLocaleString()}원</span>
           </PriceRow>
         </OrderSummary>
       </main>
