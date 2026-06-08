@@ -6,21 +6,19 @@ import CartItem from "./CartItem";
 interface Props {
   shoppingCartItems: ShoppingCartItem[];
   checkedIdsSet: Set<string>;
-  handleAllCheckedById: (checked: boolean) => void;
-  handleItemChoice: (value: ShoppingCartItem) => void;
-  onDelete: (value: ShoppingCartItem) => void;
-  handleMinusQuantity: (value: ShoppingCartItem) => void;
-  handlePlusQuantity: (value: ShoppingCartItem) => void;
+  onToggleAll: (checked: boolean) => void;
+  onToggleItem: (item: ShoppingCartItem) => void;
+  onDelete: (item: ShoppingCartItem) => void;
+  onChangeQuantity: (item: ShoppingCartItem, nextQuantity: number) => void;
 }
 
 export default function CartItemsList({
   shoppingCartItems,
   checkedIdsSet,
-  handleAllCheckedById,
-  handleItemChoice,
+  onToggleAll,
+  onToggleItem,
   onDelete,
-  handleMinusQuantity,
-  handlePlusQuantity,
+  onChangeQuantity,
 }: Props) {
   return (
     <SelectedAllItems>
@@ -30,7 +28,7 @@ export default function CartItemsList({
             checkedIdsSet.size === shoppingCartItems.length &&
             shoppingCartItems.length !== 0
           }
-          onChange={(e) => handleAllCheckedById(e.target.checked)}
+          onChange={(e) => onToggleAll(e.target.checked)}
           type="checkbox"
           aria-label="전체 상품 선택"
         />
@@ -41,10 +39,9 @@ export default function CartItemsList({
         <CartItem
           key={value.product.id}
           checkedIdsSet={checkedIdsSet}
-          handleItemChoice={handleItemChoice}
+          onToggleItem={onToggleItem}
           onDelete={onDelete}
-          handleMinusQuantity={handleMinusQuantity}
-          handlePlusQuantity={handlePlusQuantity}
+          onChangeQuantity={onChangeQuantity}
           value={value}
         />
       ))}

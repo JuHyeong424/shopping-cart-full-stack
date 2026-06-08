@@ -27,25 +27,28 @@ export function useCartItems() {
     fetchData();
   }, []);
 
-  const handleMinusQuantity = async (value: ShoppingCartItem) => {
-    const updatedQuantity = value.quantity - 1;
+  const changeQuantity = async (
+    item: ShoppingCartItem,
+    nextQuantity: number
+  ) => {
+    const prevQuantity = item.quantity;
 
     setShoppingCartItems((prev) => {
-      return prev.map((item) => {
-        return item.product.id === value.product.id
-          ? { ...item, quantity: updatedQuantity }
-          : item;
+      return prev.map((cartItem) => {
+        return cartItem.product.id === item.product.id
+          ? { ...cartItem, quantity: nextQuantity }
+          : cartItem;
       });
     });
 
     try {
-      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
+      const response = await fetch(`${BASE_URL}/carts/${item.product.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          quantity: value.quantity - 1,
+          quantity: nextQuantity,
         }),
       });
 
@@ -54,49 +57,16 @@ export function useCartItems() {
       }
     } catch (error) {
       console.error("에러 발생", error);
-      setError("상품 수량은 1 이상 가능합니다. 다시 시도해주세요.");
+      setError(
+        nextQuantity < prevQuantity
+          ? "상품 수량은 1 이상 가능합니다. 다시 시도해주세요."
+          : "상품 수량은 99 이하 가능합니다. 다시 시도해주세요."
+      );
       setShoppingCartItems((prev) => {
-        return prev.map((item) => {
-          return item.product.id === value.product.id
-            ? { ...item, quantity: value.quantity }
-            : item;
-        });
-      });
-    }
-  };
-
-  const handlePlusQuantity = async (value: ShoppingCartItem) => {
-    const updatedQuantity = value.quantity + 1;
-    setShoppingCartItems((prev) => {
-      return prev.map((item) => {
-        return item.product.id === value.product.id
-          ? { ...item, quantity: updatedQuantity }
-          : item;
-      });
-    });
-
-    try {
-      const response = await fetch(`${BASE_URL}/carts/${value.product.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          quantity: value.quantity + 1,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("해당 상품의 수량을 변경하지 못했습니다.");
-      }
-    } catch (error) {
-      console.error("에러 발생", error);
-      setError("상품 수량은 99 이하 가능합니다. 다시 시도해주세요.");
-      setShoppingCartItems((prev) => {
-        return prev.map((item) => {
-          return item.product.id === value.product.id
-            ? { ...item, quantity: value.quantity }
-            : item;
+        return prev.map((cartItem) => {
+          return cartItem.product.id === item.product.id
+            ? { ...cartItem, quantity: prevQuantity }
+            : cartItem;
         });
       });
     }
@@ -132,8 +102,7 @@ export function useCartItems() {
     setIsLoading,
     error,
     setError,
-    handleMinusQuantity,
-    handlePlusQuantity,
+    changeQuantity,
     handleDeleteItem,
   };
 }

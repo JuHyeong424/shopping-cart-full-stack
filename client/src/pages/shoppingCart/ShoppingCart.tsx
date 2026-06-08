@@ -17,8 +17,7 @@ export default function ShoppingCart() {
     isLoading,
     error,
     setError,
-    handleMinusQuantity,
-    handlePlusQuantity,
+    changeQuantity,
     handleDeleteItem,
   } = useCartItems();
 
@@ -29,7 +28,7 @@ export default function ShoppingCart() {
     removeChecked,
   } = useCheckedItems(isInitializedRef, shoppingCartItems);
 
-  const onDelete = async (item: ShoppingCartItem) => {
+  const handleDelete = async (item: ShoppingCartItem) => {
     const ok = await handleDeleteItem(item);
     if (ok) removeChecked(item.product.id);
   };
@@ -84,11 +83,10 @@ export default function ShoppingCart() {
           <CartItem
             shoppingCartItems={shoppingCartItems}
             checkedIdsSet={checkedIdsSet}
-            handleAllCheckedById={handleAllCheckedById}
-            handleItemChoice={handleItemChoice}
-            onDelete={onDelete}
-            handleMinusQuantity={handleMinusQuantity}
-            handlePlusQuantity={handlePlusQuantity}
+            onToggleAll={handleAllCheckedById}
+            onToggleItem={handleItemChoice}
+            onDelete={handleDelete}
+            onChangeQuantity={changeQuantity}
           />
 
           <OrderBox

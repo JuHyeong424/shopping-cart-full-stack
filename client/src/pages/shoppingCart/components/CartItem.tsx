@@ -5,20 +5,18 @@ import { UN_CHECKED, CHECKED } from "../constants/constant";
 interface Props {
   key: string;
   checkedIdsSet: Set<string>;
-  handleItemChoice: (value: ShoppingCartItem) => void;
-  onDelete: (value: ShoppingCartItem) => void;
-  handleMinusQuantity: (value: ShoppingCartItem) => void;
-  handlePlusQuantity: (value: ShoppingCartItem) => void;
+  onToggleItem: (item: ShoppingCartItem) => void;
+  onDelete: (item: ShoppingCartItem) => void;
+  onChangeQuantity: (item: ShoppingCartItem, nextQuantity: number) => void;
   value: ShoppingCartItem;
 }
 
 export default function CartItem({
   key,
   checkedIdsSet,
-  handleItemChoice,
+  onToggleItem,
   onDelete,
-  handleMinusQuantity,
-  handlePlusQuantity,
+  onChangeQuantity,
   value,
 }: Props) {
   return (
@@ -29,7 +27,7 @@ export default function CartItem({
         <SelectDeleteItem>
           <input
             checked={checkedIdsSet.has(value.product.id)}
-            onChange={() => handleItemChoice(value)}
+            onChange={() => onToggleItem(value)}
             type="checkbox"
             aria-label="해당 상품 선택"
           />
@@ -44,9 +42,13 @@ export default function CartItem({
               <span>{value.product.price.toLocaleString()}원</span>
             </div>
             <ItemCount>
-              <button onClick={() => handleMinusQuantity(value)}>-</button>
+              <button onClick={() => onChangeQuantity(value, value.quantity - 1)}>
+                -
+              </button>
               <span>{value.quantity}</span>
-              <button onClick={() => handlePlusQuantity(value)}>+</button>
+              <button onClick={() => onChangeQuantity(value, value.quantity + 1)}>
+                +
+              </button>
             </ItemCount>
           </ItemNamePriceCount>
         </SelectedItemInfo>
