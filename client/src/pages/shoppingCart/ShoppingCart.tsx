@@ -75,32 +75,21 @@ export default function ShoppingCart() {
         </main>
       )}
 
-      {shoppingCartItems.length !== 0 && (
+      {!isLoading && shoppingCartItems.length !== 0 && (
         <main>
-          {isLoading && (
-            <SpinnerWrapper>
-              <Spinner role="status" aria-label="로딩 중" />
-            </SpinnerWrapper>
-          )}
-          {!isLoading && (
-            <>
-              <PageHeader>
-                <h2>장바구니</h2>
-                <p>
-                  현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.
-                </p>
-              </PageHeader>
-              <CartItem
-                shoppingCartItems={shoppingCartItems}
-                checkedIdsSet={checkedIdsSet}
-                handleAllCheckedById={handleAllCheckedById}
-                handleItemChoice={handleItemChoice}
-                onDelete={onDelete}
-                handleMinusQuantity={handleMinusQuantity}
-                handlePlusQuantity={handlePlusQuantity}
-              />
-            </>
-          )}
+          <PageHeader>
+            <h2>장바구니</h2>
+            <p>현재 {shoppingCartItems.length}종류의 상품이 담겨있습니다.</p>
+          </PageHeader>
+          <CartItem
+            shoppingCartItems={shoppingCartItems}
+            checkedIdsSet={checkedIdsSet}
+            handleAllCheckedById={handleAllCheckedById}
+            handleItemChoice={handleItemChoice}
+            onDelete={onDelete}
+            handleMinusQuantity={handleMinusQuantity}
+            handlePlusQuantity={handlePlusQuantity}
+          />
 
           <OrderBox
             orderAmount={orderAmount}
