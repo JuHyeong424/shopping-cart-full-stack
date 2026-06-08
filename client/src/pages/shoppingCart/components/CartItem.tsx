@@ -42,11 +42,17 @@ export default function CartItem({
               <span>{value.product.price.toLocaleString()}원</span>
             </div>
             <ItemCount>
-              <button onClick={() => onChangeQuantity(value, value.quantity - 1)}>
+              <button
+                onClick={() => onChangeQuantity(value, value.quantity - 1)}
+                disabled={value.quantity <= 1}
+              >
                 -
               </button>
               <span>{value.quantity}</span>
-              <button onClick={() => onChangeQuantity(value, value.quantity + 1)}>
+              <button
+                onClick={() => onChangeQuantity(value, value.quantity + 1)}
+                disabled={value.quantity >= 99}
+              >
                 +
               </button>
             </ItemCount>
