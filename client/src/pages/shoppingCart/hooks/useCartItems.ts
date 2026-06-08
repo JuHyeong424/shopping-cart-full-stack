@@ -73,7 +73,9 @@ export function useCartItems() {
   };
 
   const handleDeleteItem = async (value: ShoppingCartItem) => {
-    const prevItems = shoppingCartItems;
+    const targetIndex = shoppingCartItems.findIndex(
+      (item) => item.product.id === value.product.id,
+    );
 
     setShoppingCartItems((prev) => {
       return prev.filter((item) => item.product.id !== value.product.id);
@@ -91,7 +93,13 @@ export function useCartItems() {
     } catch (error) {
       console.error("에러 발생", error);
       setError("상품 삭제에 실패하였습니다. 다시 시도해주세요.");
-      setShoppingCartItems(prevItems);
+      setShoppingCartItems((prev) => {
+        return [
+          ...prev.slice(0, targetIndex),
+          value,
+          ...prev.slice(targetIndex),
+        ];
+      });
     }
   };
 
