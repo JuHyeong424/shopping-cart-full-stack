@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { DELIVERY_FEE } from "./constants/constant";
 import { useCartItems } from "./hooks/useCartItems";
 import { useCheckedItems } from "./hooks/useCheckedItems";
-import CartItem from "./components/CartItem";
+import CartItem from "./components/CartItemsList";
 import OrderBox from "./components/OrderBox";
 import type { ShoppingCartItem } from "./types";
 

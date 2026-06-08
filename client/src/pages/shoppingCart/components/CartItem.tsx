@@ -1,114 +1,59 @@
 import styled from "@emotion/styled";
-import { UN_CHECKED, CHECKED } from "../constants/constant";
 import type { ShoppingCartItem } from "../types";
+import { UN_CHECKED, CHECKED } from "../constants/constant";
 
-interface CartItemProps {
-  shoppingCartItems: ShoppingCartItem[];
+interface Props {
+  key: string;
   checkedIdsSet: Set<string>;
-  handleAllCheckedById: (checked: boolean) => void;
   handleItemChoice: (value: ShoppingCartItem) => void;
   onDelete: (value: ShoppingCartItem) => void;
   handleMinusQuantity: (value: ShoppingCartItem) => void;
   handlePlusQuantity: (value: ShoppingCartItem) => void;
+  value: ShoppingCartItem;
 }
 
 export default function CartItem({
-  shoppingCartItems,
+  key,
   checkedIdsSet,
-  handleAllCheckedById,
   handleItemChoice,
   onDelete,
   handleMinusQuantity,
   handlePlusQuantity,
-}: CartItemProps) {
+  value,
+}: Props) {
   return (
-    <SelectedAllItems>
-      <SelectAllLabel>
-        <input
-          checked={
-            checkedIdsSet.size === shoppingCartItems.length &&
-            shoppingCartItems.length !== 0
-          }
-          onChange={(e) => handleAllCheckedById(e.target.checked)}
-          type="checkbox"
-          aria-label="전체 상품 선택"
-        />
-        <span>전체선택</span>
-      </SelectAllLabel>
+    <div key={key}>
+      <Divider />
 
-      {shoppingCartItems.map((value) => (
-        <div key={value.product.id}>
-          <Divider />
+      <SelectedItem>
+        <SelectDeleteItem>
+          <input
+            checked={checkedIdsSet.has(value.product.id)}
+            onChange={() => handleItemChoice(value)}
+            type="checkbox"
+            aria-label="해당 상품 선택"
+          />
+          <button onClick={() => onDelete(value)}>삭제</button>
+        </SelectDeleteItem>
 
-          <SelectedItem>
-            <SelectDeleteItem>
-              <input
-                checked={checkedIdsSet.has(value.product.id)}
-                onChange={() => handleItemChoice(value)}
-                type="checkbox"
-                aria-label="해당 상품 선택"
-              />
-              <button onClick={() => onDelete(value)}>삭제</button>
-            </SelectDeleteItem>
-
-            <SelectedItemInfo>
-              <img src={value.product.image} alt="상품 이미지" />
-              <ItemNamePriceCount>
-                <div>
-                  <h5>{value.product.name}</h5>
-                  <span>{value.product.price.toLocaleString()}원</span>
-                </div>
-                <ItemCount>
-                  <button onClick={() => handleMinusQuantity(value)}>-</button>
-                  <span>{value.quantity}</span>
-                  <button onClick={() => handlePlusQuantity(value)}>+</button>
-                </ItemCount>
-              </ItemNamePriceCount>
-            </SelectedItemInfo>
-          </SelectedItem>
-        </div>
-      ))}
-    </SelectedAllItems>
+        <SelectedItemInfo>
+          <img src={value.product.image} alt="상품 이미지" />
+          <ItemNamePriceCount>
+            <div>
+              <h5>{value.product.name}</h5>
+              <span>{value.product.price.toLocaleString()}원</span>
+            </div>
+            <ItemCount>
+              <button onClick={() => handleMinusQuantity(value)}>-</button>
+              <span>{value.quantity}</span>
+              <button onClick={() => handlePlusQuantity(value)}>+</button>
+            </ItemCount>
+          </ItemNamePriceCount>
+        </SelectedItemInfo>
+      </SelectedItem>
+    </div>
   );
 }
-
-const SelectedAllItems = styled.div`
-  margin-bottom: 52px;
-`;
-
-const SelectAllLabel = styled.label`
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 20px;
-
-  input {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-
-    background-image: url("${UN_CHECKED}");
-    background-size: contain;
-    background-position: center;
-    background-size: 24px 24px;
-    background-repeat: no-repeat;
-
-    &:checked {
-      background-image: url("${CHECKED}");
-    }
-  }
-
-  span {
-    margin: 0;
-    font-family: "Noto Sans", sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 15px;
-    color: rgba(10, 13, 19, 1);
-  }
-`;
 
 const Divider = styled.div`
   width: full;
