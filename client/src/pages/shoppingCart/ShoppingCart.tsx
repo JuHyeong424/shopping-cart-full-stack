@@ -2,12 +2,12 @@ import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { DELIVERY_FEE } from "./constants/constant";
 import { useCartItems } from "./hooks/useCartItems";
 import { useCheckedItems } from "./hooks/useCheckedItems";
 import CartItem from "./components/CartItemsList";
 import OrderBox from "./components/OrderBox";
 import type { ShoppingCartItem } from "./types";
+import { calculateOrderSummary } from "./domain/calculateOrderSummary";
 
 export default function ShoppingCart() {
   const isInitializedRef = useRef(false);
@@ -34,23 +34,13 @@ export default function ShoppingCart() {
     if (ok) removeChecked(item.product.id);
   };
 
-  const orderAmount = shoppingCartItems
-    .filter((item) => checkedIdsSet.has(item.product.id))
-    .reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-
-  const checkDeliveryFee =
-    orderAmount < 100000 &&
-    shoppingCartItems.length !== 0 &&
-    checkedIdsSet.size !== 0
-      ? DELIVERY_FEE
-      : 0;
-
-  const totalPayment = orderAmount + checkDeliveryFee;
-
-  const totalProductsTypeCount = checkedIdsSet.size;
-  const totalProductsQuantity = shoppingCartItems
-    .filter((item) => checkedIdsSet.has(item.product.id))
-    .reduce((sum, item) => sum + item.quantity, 0);
+  const {
+    orderAmount,
+    deliveryFee,
+    totalPayment,
+    totalProductsTypeCount,
+    totalProductsQuantity,
+  } = calculateOrderSummary(shoppingCartItems, checkedIdsSet);
 
   const handleSubmit = () => {
     navigate("/checkorder", {
@@ -114,7 +104,7 @@ export default function ShoppingCart() {
 
           <OrderBox
             orderAmount={orderAmount}
-            checkDeliveryFee={checkDeliveryFee}
+            checkDeliveryFee={deliveryFee}
             totalPayment={totalPayment}
           />
         </main>
