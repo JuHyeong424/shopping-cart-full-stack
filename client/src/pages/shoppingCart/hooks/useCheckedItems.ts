@@ -1,73 +1,63 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { STORAGE_KEY } from "../constants/constant";
 import type { ShoppingCartItem } from "../types";
 
 export function useCheckedItems(shoppingCartItems: ShoppingCartItem[]) {
-  const isInitializedRef = useRef(false);
+  const [customCheckedIds, setCustomCheckedIds] = useState<Set<string> | null>(
+    () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? new Set(JSON.parse(saved)) : null;
+    },
+  );
 
-  const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
+  const validCheckedIdsSet = useMemo(() => {
+    const currentItemIds = new Set(
+      shoppingCartItems.map((item) => item.product.id),
+    );
 
-  useEffect(() => {
-    const initialize = () => {
-      if (isInitializedRef.current) return;
-      if (shoppingCartItems.length === 0) return;
-
-      if (localStorage.getItem(STORAGE_KEY) === null) {
-        setCheckedIdsSet(
-          new Set(shoppingCartItems.map((item) => item.product.id)),
-        );
-      }
-      isInitializedRef.current = true;
-    };
-    initialize();
-  }, [shoppingCartItems, isInitializedRef]);
-
-  useEffect(() => {
-    if (!isInitializedRef.current) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checkedIdsSet]));
-  }, [checkedIdsSet, isInitializedRef]);
-
-  const updateSet = (set: Set<string>, id: string) => {
-    const updatedSet = new Set(set);
-
-    if (updatedSet.has(id)) {
-      updatedSet.delete(id);
-    } else {
-      updatedSet.add(id);
+    if (customCheckedIds === null) {
+      return currentItemIds;
     }
 
-    return updatedSet;
-  };
+    return new Set(
+      [...customCheckedIds].filter((id) => currentItemIds.has(id)),
+    );
+  }, [customCheckedIds, shoppingCartItems]);
+
+  useEffect(() => {
+    if (shoppingCartItems.length === 0 && customCheckedIds === null) return;
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...validCheckedIdsSet]));
+  }, [validCheckedIdsSet, shoppingCartItems.length, customCheckedIds]);
 
   const handleItemChoice = (value: ShoppingCartItem) => {
-    setCheckedIdsSet((prev) => updateSet(prev, value.product.id));
+    const updatedSet = new Set(validCheckedIdsSet);
+    if (updatedSet.has(value.product.id)) {
+      updatedSet.delete(value.product.id);
+    } else {
+      updatedSet.add(value.product.id);
+    }
+    setCustomCheckedIds(updatedSet);
   };
 
   const handleAllCheckedById = (checked: boolean) => {
     if (checked) {
-      const allChecked = new Set(
-        shoppingCartItems.map((item) => item.product.id),
+      setCustomCheckedIds(
+        new Set(shoppingCartItems.map((item) => item.product.id)),
       );
-      setCheckedIdsSet(allChecked);
     } else {
-      setCheckedIdsSet(new Set());
+      setCustomCheckedIds(new Set());
     }
   };
 
   const removeChecked = (id: string) => {
-    setCheckedIdsSet((prev) => {
-      const updatedCheckedId = new Set(prev);
-      updatedCheckedId.delete(id);
-      return updatedCheckedId;
-    });
+    const updatedSet = new Set(validCheckedIdsSet);
+    updatedSet.delete(id);
+    setCustomCheckedIds(updatedSet);
   };
 
   return {
-    checkedIdsSet,
-    setCheckedIdsSet,
+    checkedIdsSet: validCheckedIdsSet,
     handleItemChoice,
     handleAllCheckedById,
     removeChecked,
