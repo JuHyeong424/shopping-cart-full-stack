@@ -6,7 +6,7 @@ export function useCartItems() {
   const [shoppingCartItems, setShoppingCartItems] = useState<
     ShoppingCartItem[]
   >([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function useCartItems() {
 
   const changeQuantity = async (
     item: ShoppingCartItem,
-    nextQuantity: number
+    nextQuantity: number,
   ) => {
     const prevQuantity = item.quantity;
 
@@ -60,7 +60,7 @@ export function useCartItems() {
       setError(
         nextQuantity < prevQuantity
           ? "상품 수량은 1 이상 가능합니다. 다시 시도해주세요."
-          : "상품 수량은 99 이하 가능합니다. 다시 시도해주세요."
+          : "상품 수량은 99 이하 가능합니다. 다시 시도해주세요.",
       );
       setShoppingCartItems((prev) => {
         return prev.map((cartItem) => {
