@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { STORAGE_KEY } from "../constants/constant";
 import type { ShoppingCartItem } from "../types";
 
-export function useCheckedItems(
-  isInitializedRef: React.RefObject<boolean>,
-  shoppingCartItems: ShoppingCartItem[],
-) {
+export function useCheckedItems(shoppingCartItems: ShoppingCartItem[]) {
+  const isInitializedRef = useRef(false);
+
   const [checkedIdsSet, setCheckedIdsSet] = useState<Set<string>>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? new Set(JSON.parse(saved)) : new Set();

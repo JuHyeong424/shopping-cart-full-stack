@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
-import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCartItems } from "./hooks/useCartItems";
 import { useCheckedItems } from "./hooks/useCheckedItems";
@@ -10,7 +9,6 @@ import type { ShoppingCartItem } from "./types";
 import { calculateOrderSummary } from "./domain/calculateOrderSummary";
 
 export default function ShoppingCart() {
-  const isInitializedRef = useRef(false);
   const navigate = useNavigate();
   const {
     shoppingCartItems,
@@ -26,7 +24,7 @@ export default function ShoppingCart() {
     handleItemChoice,
     handleAllCheckedById,
     removeChecked,
-  } = useCheckedItems(isInitializedRef, shoppingCartItems);
+  } = useCheckedItems(shoppingCartItems);
 
   const handleDelete = async (item: ShoppingCartItem) => {
     const ok = await handleDeleteItem(item);
