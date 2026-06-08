@@ -105,9 +105,7 @@ export function useCartItems() {
 
   return {
     shoppingCartItems,
-    setShoppingCartItems,
     isLoading,
-    setIsLoading,
     error,
     setError,
     changeQuantity,
