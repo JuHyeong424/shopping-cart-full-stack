@@ -1,0 +1,11 @@
+#root {
+  height: 100svh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body {
+  background-color: gray;
+  margin: 0;
+}
