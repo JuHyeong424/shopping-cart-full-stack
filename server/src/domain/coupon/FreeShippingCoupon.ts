@@ -4,6 +4,10 @@ import Coupon, { type CouponContext, type DiscountCategory } from "./Coupon.ts";
 export default class FreeShippingCoupon extends Coupon {
   readonly category: DiscountCategory = "SHIPPING";
 
+  isAvailable(context: CouponContext): boolean {
+    return super.isAvailable(context) && context.shippingFee > 0;
+  }
+
   discount(context: CouponContext): number {
     return context.shippingFee;
   }
