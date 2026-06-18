@@ -70,16 +70,17 @@ describe("쿠폰 도메인 - 할인 금액", () => {
     expect(fixed5000().discount(context({ currentAmount: 3_000 }))).toBe(3_000);
   });
 
-  test("2+1 쿠폰은 2개 이상 담은 상품 중 단가가 가장 높은 상품 1개 값을 깎는다.", () => {
+  test("2+1 쿠폰은 3개 이상 담은 상품 중 단가가 가장 높은 상품 1개 값을 깎는다.", () => {
     const items: CalculationItem[] = [
-      { price: 35_000, quantity: 2 },
-      { price: 25_000, quantity: 3 },
+      { price: 50_000, quantity: 2 },
+      { price: 35_000, quantity: 3 },
+      { price: 25_000, quantity: 4 },
     ];
     expect(bogo().discount(context({ items }))).toBe(35_000);
   });
 
-  test("2+1 쿠폰은 2개 이상 담은 상품이 없으면 0원을 깎는다.", () => {
-    const items: CalculationItem[] = [{ price: 35_000, quantity: 1 }];
+  test("2+1 쿠폰은 3개 이상 담은 상품이 없으면 0원을 깎는다.", () => {
+    const items: CalculationItem[] = [{ price: 35_000, quantity: 2 }];
     expect(bogo().discount(context({ items }))).toBe(0);
   });
 
@@ -115,13 +116,23 @@ describe("쿠폰 도메인 - 사용 가능 여부", () => {
     expect(bogo().isExpired(expired)).toBe(true);
     expect(bogo().isExpired(NOW)).toBe(false);
   });
+
+  test("무료 배송 쿠폰은 깎을 배송비가 있을 때만 사용할 수 있다.", () => {
+    const base = { orderAmount: 60_000 }; // 최소 주문 금액(50,000) 충족
+    expect(
+      freeShipping().isAvailable(context({ ...base, shippingFee: 3_000 })),
+    ).toBe(true);
+    expect(
+      freeShipping().isAvailable(context({ ...base, shippingFee: 0 })),
+    ).toBe(false);
+  });
 });
 
 describe("주문 금액 계산", () => {
   const items: CalculationItem[] = [
-    { price: 35_000, quantity: 2 }, // 70,000
-    { price: 25_000, quantity: 2 }, // 50,000
-  ]; // 합계 120,000
+    { price: 35_000, quantity: 2 },
+    { price: 25_000, quantity: 2 },
+  ];
 
   test("주문 금액은 단가 x 수량의 합이다.", () => {
     expect(getOrderAmount(items)).toBe(120_000);
@@ -148,7 +159,6 @@ describe("주문 금액 계산", () => {
   });
 
   test("정액 쿠폰을 먼저, 정율 쿠폰을 나중에 적용한다.", () => {
-    // 120,000 - 5,000(FIXED) = 115,000 → 30%(MIRACLE) 34,500 할인 → 80,500
     const result = calculateOrder(items, [fixed5000(), miracle()], false, NOW);
     expect(result.discountAmount).toBe(5_000 + 34_500);
     expect(result.totalPayment).toBe(80_500);
@@ -163,7 +173,6 @@ describe("주문 금액 계산", () => {
 
   test("사용 불가능한 쿠폰은 계산에서 무시된다.", () => {
     const cheapItems: CalculationItem[] = [{ price: 50_000, quantity: 1 }];
-    // FIXED5000은 최소 10만원이라 사용 불가 → 할인 0
     const result = calculateOrder(cheapItems, [fixed5000()], false, NOW);
     expect(result.discountAmount).toBe(0);
   });
@@ -172,9 +181,9 @@ describe("주문 금액 계산", () => {
 describe("최대 할인 쿠폰 자동 적용", () => {
   test("할인 효과가 가장 큰 조합을 고른다.", () => {
     const items: CalculationItem[] = [
-      { price: 35_000, quantity: 2 },
+      { price: 35_000, quantity: 3 },
       { price: 25_000, quantity: 2 },
-    ]; // 120,000
+    ];
     const best = getMaxDiscountCoupons(
       items,
       [fixed5000(), bogo(), miracle()],
@@ -182,7 +191,6 @@ describe("최대 할인 쿠폰 자동 적용", () => {
       NOW,
     );
     const types = best.map((coupon) => coupon.type).sort();
-    // BOGO(35,000) + MIRACLE(30%) 조합이 가장 큼
     expect(types).toEqual(["BOGO", "MIRACLESALE"]);
   });
 });
