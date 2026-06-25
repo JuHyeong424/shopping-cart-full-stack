@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { http, HttpResponse } from "msw";
 import CheckOrder from "./CheckOrder";
+import { server } from "../../test/mocks/server";
+import { BASE_URL } from "../../test/mocks/handlers";
 import type { ShoppingCartItem } from "../shoppingCart/types";
 
 const selectedItems: ShoppingCartItem[] = [
@@ -17,7 +20,10 @@ const renderCheckOrder = () =>
     <MemoryRouter
       initialEntries={[{ pathname: "/checkorder", state: { selectedItems } }]}
     >
-      <CheckOrder />
+      <Routes>
+        <Route path="/checkorder" element={<CheckOrder />} />
+        <Route path="/payment" element={<div>결제 확인 페이지</div>} />
+      </Routes>
     </MemoryRouter>,
   );
 
@@ -89,5 +95,31 @@ describe("CheckOrder", () => {
     await user.click(screen.getByLabelText("제주도 및 도서산간 지역"));
 
     await waitFor(() => expect(getSummaryValue("주문 금액")).toBe("10,000원"));
+  });
+
+  it("결제 검증이 실패하면 결제 확인 페이지로 이동하지 않고 서버 오류 메시지를 보여준다", async () => {
+    server.use(
+      http.post(`${BASE_URL}/coupons/validation`, () =>
+        HttpResponse.json(
+          { message: "만료된 쿠폰이 존재합니다." },
+          { status: 400 },
+        ),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderCheckOrder();
+
+    // 계산이 끝나 결제 버튼이 활성화될 때까지 기다린다.
+    await waitFor(() =>
+      expect(getSummaryValue("총 결제 금액")).toBe("120,000원"),
+    );
+
+    await user.click(screen.getByRole("button", { name: "결제하기" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "만료된 쿠폰이 존재합니다.",
+    );
+    expect(screen.queryByText("결제 확인 페이지")).not.toBeInTheDocument();
   });
 });
