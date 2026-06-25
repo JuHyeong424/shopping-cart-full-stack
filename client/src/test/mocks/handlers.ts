@@ -37,13 +37,15 @@ export const handlers = [
 
   // 선택한 쿠폰에 따라 간단히 응답을 만든다. (서버 계산 로직은 백엔드에서 검증)
   http.post(`${BASE_URL}/coupons/calculation`, async ({ request }) => {
-    const { items, couponIds } = (await request.json()) as {
+    const { items, couponIds, isRemoteArea } = (await request.json()) as {
       items: { price: number; quantity: number }[];
       couponIds: number[];
+      isRemoteArea: boolean;
     };
     const orderAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const discountAmount = couponIds.includes(1) ? 5000 : 0;
-    const shippingFee = orderAmount >= 100000 ? 0 : 3000;
+    const baseFee = orderAmount >= 100000 ? 0 : 3000;
+    const shippingFee = baseFee + (isRemoteArea ? 3000 : 0);
 
     return HttpResponse.json({
       orderAmount,

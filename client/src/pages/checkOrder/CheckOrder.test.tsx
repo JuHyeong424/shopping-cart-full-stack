@@ -91,10 +91,12 @@ describe("CheckOrder", () => {
     );
 
     await waitFor(() => expect(getSummaryValue("배송비")).toBe("3,000원"));
+    expect(getSummaryValue("총 결제 금액")).toBe("13,000원");
 
     await user.click(screen.getByLabelText("제주도 및 도서산간 지역"));
 
-    await waitFor(() => expect(getSummaryValue("주문 금액")).toBe("10,000원"));
+    await waitFor(() => expect(getSummaryValue("배송비")).toBe("6,000원"));
+    expect(getSummaryValue("총 결제 금액")).toBe("16,000원");
   });
 
   it("결제 검증이 실패하면 결제 확인 페이지로 이동하지 않고 서버 오류 메시지를 보여준다", async () => {
