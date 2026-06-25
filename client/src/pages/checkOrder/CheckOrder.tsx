@@ -35,7 +35,7 @@ export default function CheckOrder() {
     [selectedItems],
   );
 
-  const { calculation } = useOrderCalculation(
+  const { calculation, error: calculationError } = useOrderCalculation(
     calculationItems,
     selectedCouponIds,
     isRemoteArea,
@@ -48,6 +48,12 @@ export default function CheckOrder() {
   );
 
   const handlePay = async () => {
+    // 계산이 실패했거나 아직 없는 상태면 결제를 진행하지 않는다.
+    if (calculationError || !calculation) {
+      setPayError("결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
     try {
       const response = await fetch(`${BASE_URL}/coupons/validation`, {
         method: "POST",
@@ -117,10 +123,14 @@ export default function CheckOrder() {
           totalPayment={calculation?.totalPayment ?? 0}
         />
 
+        {calculationError && <PayError role="alert">{calculationError}</PayError>}
         {payError && <PayError role="alert">{payError}</PayError>}
       </Main>
 
-      <PayButton onClick={handlePay} disabled={selectedItems.length === 0}>
+      <PayButton
+        onClick={handlePay}
+        disabled={selectedItems.length === 0 || !!calculationError || !calculation}
+      >
         결제하기
       </PayButton>
 

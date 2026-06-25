@@ -31,6 +31,8 @@ export function useOrderCalculation(
         setError("");
       } catch (error) {
         console.error(error);
+        // 실패 시 이전 계산 결과를 비워 현재 선택과 어긋난 금액이 남지 않게 한다.
+        setCalculation(null);
         setError("결제 금액을 계산하지 못했습니다. 다시 시도해주세요.");
       }
     };
