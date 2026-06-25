@@ -9,6 +9,8 @@ import type { CalculationItem, Coupon } from "../types";
 
 interface Props {
   coupons: Coupon[];
+  isLoading: boolean;
+  error: string;
   items: CalculationItem[];
   isRemoteArea: boolean;
   selectedCouponIds: number[];
@@ -23,6 +25,8 @@ interface Props {
  */
 export default function CouponModal({
   coupons,
+  isLoading,
+  error,
   items,
   isRemoteArea,
   selectedCouponIds,
@@ -75,25 +79,33 @@ export default function CouponModal({
           </RecommendButton>
         </InfoRow>
 
-        <CouponList>
-          {coupons.map((coupon) => (
-            <CouponItem key={coupon.id} disabled={isDisabled(coupon.id)}>
-              <input
-                type="checkbox"
-                checked={isChecked(coupon.id)}
-                disabled={isDisabled(coupon.id)}
-                onChange={() => toggle(coupon.id)}
-                aria-label={coupon.name}
-              />
-              <CouponInfo>
-                <strong>{coupon.name}</strong>
-                {getCouponDescriptions(coupon).map((line) => (
-                  <span key={line}>{line}</span>
-                ))}
-              </CouponInfo>
-            </CouponItem>
-          ))}
-        </CouponList>
+        {isLoading ? (
+          <StatusMessage role="status">
+            쿠폰 목록을 불러오는 중입니다…
+          </StatusMessage>
+        ) : error ? (
+          <StatusMessage role="alert">{error}</StatusMessage>
+        ) : (
+          <CouponList>
+            {coupons.map((coupon) => (
+              <CouponItem key={coupon.id} disabled={isDisabled(coupon.id)}>
+                <input
+                  type="checkbox"
+                  checked={isChecked(coupon.id)}
+                  disabled={isDisabled(coupon.id)}
+                  onChange={() => toggle(coupon.id)}
+                  aria-label={coupon.name}
+                />
+                <CouponInfo>
+                  <strong>{coupon.name}</strong>
+                  {getCouponDescriptions(coupon).map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </CouponInfo>
+              </CouponItem>
+            ))}
+          </CouponList>
+        )}
 
         <ApplyButton onClick={() => onApply(draftIds)}>
           총 {totalDiscount.toLocaleString()}원 할인 쿠폰 사용하기
@@ -173,6 +185,20 @@ const RecommendButton = styled.button`
   font-weight: 500;
   font-size: 12px;
   color: rgba(10, 13, 19, 1);
+`;
+
+const StatusMessage = styled.p`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(10, 13, 19, 0.7);
 `;
 
 const CouponList = styled.div`

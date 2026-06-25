@@ -20,7 +20,11 @@ export default function CheckOrder() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payError, setPayError] = useState("");
 
-  const { coupons } = useCoupons();
+  const {
+    coupons,
+    isLoading: isCouponsLoading,
+    error: couponsError,
+  } = useCoupons();
 
   const calculationItems = useMemo(
     () =>
@@ -123,6 +127,8 @@ export default function CheckOrder() {
       {isModalOpen && (
         <CouponModal
           coupons={coupons}
+          isLoading={isCouponsLoading}
+          error={couponsError}
           items={calculationItems}
           isRemoteArea={isRemoteArea}
           selectedCouponIds={selectedCouponIds}

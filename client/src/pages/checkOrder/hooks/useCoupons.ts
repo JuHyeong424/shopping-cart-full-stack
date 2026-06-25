@@ -9,21 +9,19 @@ export function useCoupons() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${BASE_URL}/coupons`);
+    fetch(`${BASE_URL}/coupons`)
+      .then(async (response) => {
         if (!response.ok) throw new Error("쿠폰을 불러오지 못했습니다.");
         const data: { coupons: Coupon[] } = await response.json();
         setCoupons(data.coupons);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error(error);
         setError("쿠폰 목록을 불러오지 못했습니다. 다시 시도해주세요.");
-      } finally {
+      })
+      .finally(() => {
         setIsLoading(false);
-      }
-    };
-    fetchData();
+      });
   }, []);
 
   return { coupons, isLoading, error };
